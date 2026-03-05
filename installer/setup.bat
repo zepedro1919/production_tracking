@@ -120,16 +120,16 @@ echo.
 :: =============================================================
 :: STEP 2: Install pip packages
 :: =============================================================
-echo  [2/6] A instalar pacotes Python (Flask, requests, pinggy)...
+echo  [2/6] A instalar pacotes Python (Flask, requests, py-localtunnel)...
 echo  --------------------------------------------------------
 "!PYTHON_EXE!" -m pip install --upgrade pip 2>nul
-"!PYTHON_EXE!" -m pip install flask requests pinggy
+"!PYTHON_EXE!" -m pip install flask requests py-localtunnel
 if %errorlevel% neq 0 (
     echo.
     echo  [AVISO] Falha ao instalar pacotes. A tentar com --user...
-    "!PYTHON_EXE!" -m pip install --user flask requests pinggy
+    "!PYTHON_EXE!" -m pip install --user flask requests py-localtunnel
 )
-echo  [OK] Pacotes instalados (flask, requests, pinggy).
+echo  [OK] Pacotes instalados (flask, requests, py-localtunnel).
 echo.
 
 :: =============================================================

@@ -1,7 +1,7 @@
 """
 Launcher - Arranca o Print Agent e um tunel publico num so processo.
-Tenta multiplos servicos de tunnel (Pinggy, LocalTunnel) com auto-reconnect.
-100% Python, sem binarios externos. Compativel com Windows 7/8/10/11.
+Usa LocalTunnel (100% Python, sem binarios) com auto-reconnect.
+Compativel com Windows 7/8/10/11.
 """
 
 import os
@@ -52,11 +52,16 @@ def safe_print(msg=""):
 
 
 def ensure_packages():
-    """Instalar pacotes de tunnel se nao existirem."""
+    """Instalar pacotes necessarios se nao existirem."""
     needed = {
-        "pinggy": "pinggy",
         "requests": "requests",
     }
+    # py-localtunnel: modulo chama-se py_localtunnel
+    try:
+        from py_localtunnel.tunnel import Tunnel
+    except ImportError:
+        needed["py_localtunnel"] = "py-localtunnel"
+
     missing = []
     for mod, pkg in needed.items():
         try:
@@ -76,35 +81,6 @@ def ensure_packages():
 # ===========================================================
 # TUNNEL PROVIDERS
 # ===========================================================
-
-def try_pinggy(port):
-    """
-    Tenta criar tunnel via Pinggy Python SDK.
-    Free tier: 60 min timeout, URL aleatorio, sem conta necessaria.
-    Retorna (tunnel_obj, public_url) ou levanta excepcao.
-    """
-    import pinggy
-
-    safe_print("  [Pinggy] A criar tunnel...")
-    tunnel = pinggy.start_tunnel(forwardto="localhost:%d" % port)
-
-    # Obter URL publico
-    urls = tunnel.urls
-    if not urls:
-        raise Exception("Pinggy nao devolveu URLs")
-
-    # Preferir HTTPS
-    public_url = None
-    for u in urls:
-        if u.startswith("https://"):
-            public_url = u
-            break
-    if not public_url:
-        public_url = urls[0]
-
-    safe_print("  [Pinggy] Tunnel criado: %s" % public_url)
-    return tunnel, public_url
-
 
 def try_localtunnel(port, subdomain=""):
     """
@@ -143,19 +119,9 @@ def try_localtunnel(port, subdomain=""):
 
 def create_tunnel(port, subdomain=""):
     """
-    Tenta criar um tunnel usando os providers disponiveis.
-    Ordem: Pinggy (mais robusto) -> LocalTunnel (fallback).
+    Cria um tunnel usando LocalTunnel (100% Python, sem binarios).
     Retorna (provider_name, tunnel_obj, public_url).
     """
-    # --- Tentar Pinggy primeiro ---
-    try:
-        tunnel, url = try_pinggy(port)
-        return "Pinggy", tunnel, url
-    except Exception as e:
-        safe_print("  [Pinggy] Falhou: %s" % str(e))
-        logging.warning("Pinggy falhou: %s", e)
-
-    # --- Fallback: LocalTunnel ---
     try:
         tunnel, url = try_localtunnel(port, subdomain)
         return "LocalTunnel", tunnel, url
@@ -163,7 +129,7 @@ def create_tunnel(port, subdomain=""):
         safe_print("  [LocalTunnel] Falhou: %s" % str(e))
         logging.warning("LocalTunnel falhou: %s", e)
 
-    raise Exception("Todos os servicos de tunnel falharam")
+    raise Exception("Nao foi possivel criar o tunnel")
 
 
 def check_tunnel_health(url, timeout=10):
@@ -190,7 +156,7 @@ def main():
     logging.root.setLevel(logging.INFO)
     logging.root.addHandler(file_handler)
 
-    for logger_name in ["werkzeug", "urllib3", "requests", "pinggy"]:
+    for logger_name in ["werkzeug", "urllib3", "requests"]:
         lg = logging.getLogger(logger_name)
         lg.handlers = []
         lg.addHandler(file_handler)
@@ -329,8 +295,6 @@ def main():
     safe_print()
     safe_print("  NOTAS:")
     safe_print("    - NAO feche esta janela!")
-    if provider == "Pinggy":
-        safe_print("    - Pinggy free: tunnel reconecta automaticamente")
     safe_print("    - O URL muda se reiniciar este script")
     safe_print()
     safe_print("=" * 60)
