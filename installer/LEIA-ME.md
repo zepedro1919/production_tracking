@@ -10,7 +10,7 @@ Quando alguém lê um QR Code na fábrica, a etiqueta é impressa automaticament
 ## Requisitos
 
 - **Windows 7 ou superior**
-- **Impressora** ligada ao PC (ex: EPSON ET-M1170 Series)
+- **Impressora** ligada ao PC (ex: EPSON ET-3700 Series)
 - **Ligação à internet**
 
 ---
@@ -30,8 +30,8 @@ Antes de correr o instalador, descarregue estes programas:
 | **SumatraPDF** | [sumatrapdfreader.org/download](https://www.sumatrapdfreader.org/download-free-pdf-viewer) - versão **Portable** | `tools\SumatraPDF.exe` |
 | **Python 3.8** | [python.org/downloads](https://www.python.org/downloads/release/python-3820/) | Instalar normalmente (marcar **"Add to PATH"**) |
 
-> **NOTA:** O ngrok é instalado e gerido **automaticamente** pelo Python (pyngrok).
-> Não precisa de descarregar ngrok.exe manualmente!
+> **NOTA:** O túnel (LocalTunnel) é 100% Python — **não precisa de descarregar
+> nenhum binário extra**. Compatível com Windows 7, 8, 10 e 11.
 
 > **NOTA Windows 7:** Use Python **3.8** (última versão compatível).
 
@@ -50,21 +50,21 @@ Antes de correr o instalador, descarregue estes programas:
 1. Clique duas vezes em **`iniciar.bat`** (ou no atalho do Desktop)
 2. Vai abrir **1 janela** com tudo:
    - **Print Agent** - o servidor de impressão
-   - **ngrok** - o túnel de internet (automático)
-3. O URL do ngrok é mostrado e copiado automaticamente
+   - **LocalTunnel** - o túnel de internet (automático, 100% Python)
+3. O URL do túnel é mostrado e copiado automaticamente
 
-> 💡 **ngrok gratuito NÃO tem timeout** — pode correr infinitamente!
+> 💡 **LocalTunnel é gratuito e sem conta** — pode correr infinitamente!
 > Mas o URL muda se reiniciar o programa.
 
 ### Actualizar o URL no Google Apps Script
 
-⚠️ **O URL do ngrok muda cada vez que reinicia!** (versão gratuita)
+⚠️ **O URL muda cada vez que reinicia!** (versão gratuita)
 
-1. Copie o URL que aparece quando inicia (ex: `https://xxxx-xx-xxx.ngrok-free.app`)
+1. Copie o URL que aparece quando inicia (ex: `https://xxxx-xxxx-xxxx.loca.lt`)
 2. Abra o **Google Apps Script** do projecto
 3. No ficheiro **Config.gs**, altere a linha:
    ```javascript
-   PRINT_AGENT_URL: "https://NOVO-URL-AQUI.ngrok-free.app"
+   PRINT_AGENT_URL: "https://NOVO-URL-AQUI.loca.lt"
    ```
 4. **Guarde** o ficheiro (Ctrl+S)
 5. Vá a **Implementar → Gerir implementações**
@@ -76,7 +76,7 @@ Antes de correr o instalador, descarregue estes programas:
 
 ### Parar o sistema
 
-Feche as janelas "Print Agent" e "ngrok".
+Feche a janela do terminal (ou pressione Ctrl+C).
 
 ---
 
@@ -86,18 +86,19 @@ Feche as janelas "Print Agent" e "ngrok".
 - Verifique que `SumatraPDF.exe` está na pasta `tools\`
 - Ou corra `setup.bat` novamente e indique o caminho
 
-### "ngrok não encontrado"
-- O ngrok é gerido automaticamente pelo pyngrok
-- Se falhar, verifique a ligação à internet
-- Verifique o ficheiro `print_agent.log` para erros
+### "Falha ao criar túnel"
+- Verifique a ligação à internet
+- O serviço localtunnel.me pode estar temporariamente em baixo
+- O launcher tenta 3 vezes automaticamente
+- Verifique o ficheiro `launcher.log` para erros detalhados
 
 ### "Impressão não funciona"
 - Verifique que a impressora está ligada e é a predefinida do Windows
 - Abra `http://localhost:5555/health` no browser para verificar o estado
-- Verifique o ficheiro `print_agent.log` para erros detalhados
+- Verifique o ficheiro `launcher.log` para erros detalhados
 
 ### "QR Code dá erro 404"
-- O ngrok não está a correr. Inicie com `iniciar.bat`
+- O túnel não está a correr. Inicie com `iniciar.bat`
 - Se mudou o PC, o URL mudou. Actualize o Config.gs
 
 ### "Erro de autorização"
@@ -112,11 +113,11 @@ installer/
 ├── setup.bat           ← Instalador (correr 1 vez)
 ├── iniciar.bat         ← Iniciar sistema (uso diário)
 ├── print_agent.py      ← Servidor de impressão
-├── launcher.py         ← Arranca tudo (print agent + ngrok)
+├── launcher.py         ← Arranca tudo (print agent + tunnel)
 ├── config.json         ← Configuração (criado automaticamente)
 ├── config.ini          ← Config do instalador
-├── print_agent.log     ← Log de actividade
-├── ngrok_url.txt       ← Último URL do ngrok
+├── launcher.log        ← Log de actividade
+├── tunnel_url.txt      ← Último URL do túnel
 ├── LEIA-ME.md          ← Este ficheiro
 └── tools/
     └── SumatraPDF.exe  ← Descarregar e colocar aqui

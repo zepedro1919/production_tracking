@@ -2,18 +2,18 @@
 installer/config.json
 installer/config.ini
 
-# URL do ngrok (muda a cada arranque)
+# URL do tunnel (muda a cada arranque)
 installer/ngrok_url.txt
+installer/tunnel_url.txt
 
 # Binarios e ferramentas locais
-installer/tools/ngrok.exe
 installer/tools/SumatraPDF.exe
 
 # Logs
 *.log
 print_agent.log
 
-# ngrok cache
+# ngrok cache (legacy)
 .ngrok2/
 
 # Python

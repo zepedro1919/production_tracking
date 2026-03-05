@@ -11,14 +11,14 @@ echo  ============================================================
 echo.
 echo  Este instalador vai configurar tudo automaticamente:
 echo    1. Verificar/Instalar Python
-echo    2. Instalar pacotes necessarios (Flask, pyngrok)
+echo    2. Instalar pacotes necessarios (Flask, py-localtunnel)
 echo    3. Verificar/Instalar SumatraPDF
 echo    4. Detectar impressora
 echo    5. Configurar print agent
 echo    6. Criar atalho no Ambiente de Trabalho
 echo.
-echo  NOTA: ngrok e gerido automaticamente pelo Python (pyngrok)
-echo        Nao precisa de descarregar ngrok.exe separadamente!
+echo  NOTA: O tunel e 100%% Python (LocalTunnel) - sem binarios externos!
+echo        Compativel com Windows 7, 8, 10, 11.
 echo  ============================================================
 echo.
 pause
@@ -31,7 +31,6 @@ set "INSTALL_DIR=%INSTALL_DIR:~0,-1%"
 set "CONFIG_FILE=%INSTALL_DIR%\config.ini"
 set "PYTHON_EXE="
 set "SUMATRA_EXE="
-set "NGROK_EXE="
 set "PRINTER_NAME="
 
 :: =============================================================
@@ -121,16 +120,16 @@ echo.
 :: =============================================================
 :: STEP 2: Install pip packages
 :: =============================================================
-echo  [2/6] A instalar pacotes Python (Flask, requests, pyngrok)...
+echo  [2/6] A instalar pacotes Python (Flask, requests, py-localtunnel)...
 echo  --------------------------------------------------------
 "!PYTHON_EXE!" -m pip install --upgrade pip 2>nul
-"!PYTHON_EXE!" -m pip install flask requests pyngrok
+"!PYTHON_EXE!" -m pip install flask requests py-localtunnel
 if %errorlevel% neq 0 (
     echo.
     echo  [AVISO] Falha ao instalar pacotes. A tentar com --user...
-    "!PYTHON_EXE!" -m pip install --user flask requests pyngrok
+    "!PYTHON_EXE!" -m pip install --user flask requests py-localtunnel
 )
-echo  [OK] Pacotes instalados (flask, requests, pyngrok).
+echo  [OK] Pacotes instalados (flask, requests, py-localtunnel).
 echo.
 
 :: =============================================================
@@ -266,7 +265,7 @@ echo.
 echo  Resumo:
 echo    Python:     !PYTHON_EXE!
 echo    SumatraPDF: !SUMATRA_EXE!
-echo    ngrok:      via pyngrok (automatico)
+echo    Tunnel:     via py-localtunnel (100%% Python)
 echo    Impressora: !PRINTER_NAME!
 echo    Pasta:      !INSTALL_DIR!
 echo.
