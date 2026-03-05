@@ -10,6 +10,29 @@ import time
 import threading
 import logging
 
+# ==========================================================
+# MONKEY-PATCH DEFINITIVO para Win7 (cp850):
+# Substituir o metodo emit() do StreamHandler para NUNCA crashar.
+# Isto protege TODOS os handlers, incluindo os criados pelo
+# Flask/werkzeug/pyngrok DEPOIS do nosso setup.
+# ==========================================================
+_original_stream_emit = logging.StreamHandler.emit
+
+def _safe_emit(self, record):
+    try:
+        _original_stream_emit(self, record)
+    except (UnicodeEncodeError, UnicodeDecodeError, OSError):
+        # Fallback: converter para ASCII e tentar de novo
+        try:
+            record.msg = str(record.msg).encode("ascii", errors="replace").decode("ascii")
+            _original_stream_emit(self, record)
+        except Exception:
+            pass  # Desistir silenciosamente - nao crashar
+    except Exception:
+        pass  # Nunca crashar por causa de logging
+
+logging.StreamHandler.emit = _safe_emit
+
 # Pasta base = pasta onde este script esta
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_JSON = os.path.join(BASE_DIR, "config.json")
