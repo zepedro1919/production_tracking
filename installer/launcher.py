@@ -95,6 +95,8 @@ def main():
     # -------------------------------------------------------
     # 2. Carregar config para obter a porta e authtoken
     # -------------------------------------------------------
+    NGROK_AUTHTOKEN_DEFAULT = "31rwnFKARXd6DAWSn8bTOx5nZZd_7TVzZJxzeQp26iRnbNxkf"
+
     port = 5555
     auth_token_ngrok = ""
     if os.path.exists(CONFIG_JSON):
@@ -106,43 +108,10 @@ def main():
         except Exception:
             pass
 
-    # Se nao tem authtoken, pedir ao utilizador
+    # Usar o token embutido se nao houver outro
     if not auth_token_ngrok:
-        safe_print("  " + "=" * 56)
-        safe_print("  AUTHTOKEN DO NGROK NECESSARIO")
-        safe_print("  " + "=" * 56)
-        safe_print()
-        safe_print("  O ngrok agora exige autenticacao (conta gratuita).")
-        safe_print()
-        safe_print("  Passos:")
-        safe_print("    1. Va a: https://dashboard.ngrok.com/signup")
-        safe_print("    2. Crie uma conta gratuita")
-        safe_print("    3. Copie o authtoken de:")
-        safe_print("       https://dashboard.ngrok.com/get-started/your-authtoken")
-        safe_print()
-        try:
-            auth_token_ngrok = input("  Cole o authtoken aqui: ").strip()
-        except Exception:
-            auth_token_ngrok = ""
-
-        if auth_token_ngrok:
-            # Guardar no config.json para nao pedir de novo
-            try:
-                cfg_data = {}
-                if os.path.exists(CONFIG_JSON):
-                    with open(CONFIG_JSON, "r", encoding="utf-8") as f:
-                        cfg_data = json.load(f)
-                cfg_data["ngrok_authtoken"] = auth_token_ngrok
-                with open(CONFIG_JSON, "w", encoding="utf-8") as f:
-                    json.dump(cfg_data, f, indent=2, ensure_ascii=False)
-                safe_print("  [OK] Authtoken guardado em config.json")
-            except Exception:
-                pass
-        else:
-            safe_print("  [ERRO] Sem authtoken, o ngrok nao vai funcionar.")
-            safe_print("  Adicione 'ngrok_authtoken' ao config.json e tente de novo.")
-            input("  Prima Enter para sair...")
-            return
+        auth_token_ngrok = NGROK_AUTHTOKEN_DEFAULT
+        safe_print("  A usar authtoken ngrok configurado.")
     safe_print()
 
     # -------------------------------------------------------
