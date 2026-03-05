@@ -5,6 +5,25 @@ Usa pyngrok para gerir o ngrok automaticamente (compativel com Windows 7).
 
 import os
 import sys
+import io
+
+# ============================================================
+# FIX CRITICO: Substituir stdout/stderr ANTES de qualquer outro import
+# O terminal do Win7 usa cp850 que nao suporta certos chars UTF-8
+# do ngrok/pyngrok, causando crash no logging.
+# Ao substituir aqui, TUDO que escrever para stdout/stderr usa
+# encoding seguro com errors="replace".
+# ============================================================
+try:
+    sys.stdout = io.TextIOWrapper(
+        sys.stdout.buffer, encoding="utf-8", errors="replace", line_buffering=True
+    )
+    sys.stderr = io.TextIOWrapper(
+        sys.stderr.buffer, encoding="utf-8", errors="replace", line_buffering=True
+    )
+except Exception:
+    pass  # Se falhar, manter os originais
+
 import json
 import time
 import threading
@@ -15,26 +34,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_JSON = os.path.join(BASE_DIR, "config.json")
 
 def main():
-    # Setup logging - usar encoding seguro para Win7
-    # O terminal do Win7 (cp850) pode nao suportar certos chars do ngrok
-    try:
-        import io
-        safe_stdout = io.TextIOWrapper(
-            sys.stdout.buffer, encoding="utf-8", errors="replace", line_buffering=True
-        )
-    except Exception:
-        safe_stdout = sys.stdout
-
-    handler = logging.StreamHandler(safe_stdout)
-    handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
-
-    # Aplicar handler seguro a TODOS os loggers (incluindo pyngrok)
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.INFO)
-    # Remover handlers existentes
-    for h in root_logger.handlers[:]:
-        root_logger.removeHandler(h)
-    root_logger.addHandler(handler)
+    # Setup logging - stdout ja e seguro (substituido no topo do ficheiro)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        stream=sys.stdout
+    )
 
     print()
     print("=" * 60)
