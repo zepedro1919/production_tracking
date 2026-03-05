@@ -56,15 +56,39 @@ def main():
             pass
 
     # -------------------------------------------------------
-    # 3. Verificar se o ngrok.exe local existe (opcional)
-    #    Se existir na pasta tools, usar esse
+    # 3. Detectar Windows e configurar ngrok adequadamente
+    #    Windows 7 = ngrok v2 (v3 nao suporta Win7)
+    #    Windows 10+ = ngrok v3
     # -------------------------------------------------------
+    import platform
+    win_ver = platform.version()  # e.g. "6.1.7601" for Win7, "10.0.xxxxx" for Win10+
+    major_ver = int(win_ver.split(".")[0]) if win_ver else 10
+
+    if major_ver < 10:
+        print(f"  Windows antigo detectado (version {win_ver})")
+        print("  A usar ngrok v2 (compativel com Windows 7/8)")
+        pyngrok_config = conf.PyngrokConfig(ngrok_version="v2")
+        conf.set_default(pyngrok_config)
+    else:
+        print(f"  Windows moderno detectado (version {win_ver})")
+        print("  A usar ngrok v3")
+
+    # Se existir ngrok.exe local na pasta tools, usar esse
     local_ngrok = os.path.join(BASE_DIR, "tools", "ngrok.exe")
     if os.path.exists(local_ngrok):
-        print(f"  A usar ngrok local: {local_ngrok}")
-        conf.get_default().ngrok_path = local_ngrok
+        print(f"  ngrok local encontrado: {local_ngrok}")
+        # So usar o local se for compativel (testar se arranca)
+        import subprocess as sp
+        try:
+            result = sp.run([local_ngrok, "version"], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                conf.get_default().ngrok_path = local_ngrok
+                print(f"  ngrok local OK: {result.stdout.strip()}")
+            else:
+                print("  ngrok local incompativel, pyngrok vai descarregar versao correcta.")
+        except Exception:
+            print("  ngrok local nao funciona, pyngrok vai descarregar versao correcta.")
     else:
-        print("  ngrok local nao encontrado em tools/")
         print("  pyngrok vai descarregar automaticamente a versao correcta.")
     print()
 
