@@ -146,10 +146,6 @@ function processPickagem(rowNum) {
     sheet.getRange(rowNum, COL.QTD_PIC + 1).setValue(newQtdPic);
     SpreadsheetApp.flush();
     
-    // Get current label position (1-14)
-    var posSheet   = ss.getSheetByName(CONFIG.SHEET_POSITION);
-    var currentPos = parseInt(posSheet.getRange(CONFIG.POSITION_CELL).getValue(), 10) || 1;
-    
     // Generate the label PDF
     var labelData = {
       enc:       enc,
@@ -159,15 +155,10 @@ function processPickagem(rowNum) {
       producao:  qtdProd
     };
     
-    var pdfBlob = generateLabelPdf(labelData, currentPos);
+    var pdfBlob = generateLabelPdf(labelData, 1);
     
     // Send PDF to print agent → prints automatically
     var printResult = sendToPrintAgent(pdfBlob);
-    
-    // Advance position: 1→2→...→14→1
-    var nextPos = (currentPos % CONFIG.TOTAL_LABELS) + 1;
-    posSheet.getRange(CONFIG.POSITION_CELL).setValue(nextPos);
-    SpreadsheetApp.flush();
     
     var printStatus = printResult.success 
       ? "Impressão enviada ✓" 
@@ -179,7 +170,6 @@ function processPickagem(rowNum) {
                "Encomenda: " + enc + "\n" +
                "Código: " + codigo + "\n" +
                "Picagem: " + newQtdPic + "/" + qtdProd + "\n" +
-               "Etiqueta posição: " + currentPos + "\n" +
                printStatus
     };
   } finally {
