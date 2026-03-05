@@ -15,12 +15,26 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_JSON = os.path.join(BASE_DIR, "config.json")
 
 def main():
-    # Setup logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)]
-    )
+    # Setup logging - usar encoding seguro para Win7
+    # O terminal do Win7 (cp850) pode nao suportar certos chars do ngrok
+    try:
+        import io
+        safe_stdout = io.TextIOWrapper(
+            sys.stdout.buffer, encoding="utf-8", errors="replace", line_buffering=True
+        )
+    except Exception:
+        safe_stdout = sys.stdout
+
+    handler = logging.StreamHandler(safe_stdout)
+    handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+
+    # Aplicar handler seguro a TODOS os loggers (incluindo pyngrok)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    # Remover handlers existentes
+    for h in root_logger.handlers[:]:
+        root_logger.removeHandler(h)
+    root_logger.addHandler(handler)
 
     print()
     print("=" * 60)
@@ -101,9 +115,17 @@ def main():
                     pass
 
         # Configurar pyngrok para v2 com caminho explicito
+        # log_event_callback evita crash de encoding no Win7
+        def safe_log_callback(log):
+            try:
+                print(f"  [ngrok] {log.msg}")
+            except Exception:
+                pass
+
         pyngrok_config = conf.PyngrokConfig(
             ngrok_version="v2",
-            ngrok_path=default_ngrok_bin
+            ngrok_path=default_ngrok_bin,
+            log_event_callback=safe_log_callback
         )
         conf.set_default(pyngrok_config)
         print(f"  ngrok sera instalado em: {default_ngrok_bin}")
