@@ -42,6 +42,9 @@ if not "!PYTHON_EXE!"=="python" (
 )
 
 :: Arrancar tudo via launcher.py (Print Agent + ngrok num so processo)
-"!PYTHON_EXE!" "%BASE_DIR%\launcher.py"
+:: PYTHONIOENCODING forca UTF-8 com replace para chars invalidos no Win7
+set "PYTHONIOENCODING=utf-8:replace"
+set "PYTHONLEGACYWINDOWSSTDIO=1"
+"!PYTHON_EXE!" -u "%BASE_DIR%\launcher.py"
 
 pause
