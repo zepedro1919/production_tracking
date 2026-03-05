@@ -1,0 +1,25 @@
+# Config local (gerado pelo setup.bat, especifico de cada PC)
+installer/config.json
+installer/config.ini
+
+# URL do ngrok (muda a cada arranque)
+installer/ngrok_url.txt
+
+# Binarios e ferramentas locais
+installer/tools/ngrok.exe
+installer/tools/SumatraPDF.exe
+
+# Logs
+*.log
+print_agent.log
+
+# ngrok cache
+.ngrok2/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Temp
+*.tmp

@@ -66,12 +66,18 @@ def load_config():
             changed = True
             logging.info(f"SumatraPDF auto-detectado: {detected}")
 
-    if not config["temp_dir"]:
+    if not config["temp_dir"] or not os.path.isabs(config["temp_dir"]):
         config["temp_dir"] = os.path.join(tempfile.gettempdir(), "print_agent_nautilus")
         changed = True
 
     # Garantir que pasta temp existe
-    os.makedirs(config["temp_dir"], exist_ok=True)
+    try:
+        os.makedirs(config["temp_dir"], exist_ok=True)
+    except (PermissionError, OSError):
+        # Se a pasta temp for de outro PC/utilizador, usar a local
+        config["temp_dir"] = os.path.join(tempfile.gettempdir(), "print_agent_nautilus")
+        os.makedirs(config["temp_dir"], exist_ok=True)
+        changed = True
 
     if changed:
         save_config(config)
@@ -165,10 +171,13 @@ def auto_detect_sumatra():
     if os.path.exists(users_dir):
         try:
             for user_dir in os.listdir(users_dir):
-                user_sumatra = os.path.join(users_dir, user_dir, "AppData", "Local", "SumatraPDF", "SumatraPDF.exe")
-                if user_sumatra not in search_paths:
-                    search_paths.append(user_sumatra)
-        except PermissionError:
+                try:
+                    user_sumatra = os.path.join(users_dir, user_dir, "AppData", "Local", "SumatraPDF", "SumatraPDF.exe")
+                    if user_sumatra not in search_paths:
+                        search_paths.append(user_sumatra)
+                except (PermissionError, OSError):
+                    pass
+        except (PermissionError, OSError):
             pass
 
     for path in search_paths:

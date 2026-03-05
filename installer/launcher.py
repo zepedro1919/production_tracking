@@ -61,35 +61,55 @@ def main():
     #    Windows 10+ = ngrok v3
     # -------------------------------------------------------
     import platform
+    import subprocess as sp
+
     win_ver = platform.version()  # e.g. "6.1.7601" for Win7, "10.0.xxxxx" for Win10+
     major_ver = int(win_ver.split(".")[0]) if win_ver else 10
+    need_v2 = major_ver < 10
 
-    if major_ver < 10:
+    if need_v2:
         print(f"  Windows antigo detectado (version {win_ver})")
         print("  A usar ngrok v2 (compativel com Windows 7/8)")
-        pyngrok_config = conf.PyngrokConfig(ngrok_version="v2")
+
+        # Caminho onde o pyngrok guarda o ngrok por defeito
+        from pyngrok import installer
+        default_ngrok_dir = installer.get_default_ngrok_dir()
+        default_ngrok_bin = os.path.join(default_ngrok_dir, "ngrok.exe")
+
+        # Se ja existe um ngrok no caminho padrao, verificar se e v3
+        # Se for v3, apagar para forcar re-download da v2
+        if os.path.exists(default_ngrok_bin):
+            print(f"  ngrok existente encontrado em: {default_ngrok_bin}")
+            try:
+                result = sp.run([default_ngrok_bin, "version"],
+                               capture_output=True, text=True, timeout=10)
+                ver_output = result.stdout.strip() + result.stderr.strip()
+                print(f"  Versao existente: {ver_output}")
+                # ngrok v3 output: "ngrok version 3.x.x"
+                # ngrok v2 output: "ngrok version 2.x.x"
+                if "version 3" in ver_output or result.returncode != 0:
+                    print("  E versao 3 (incompativel) - a apagar para forcar download v2...")
+                    os.remove(default_ngrok_bin)
+                    print("  [OK] ngrok v3 apagado.")
+                else:
+                    print("  Ja e v2 - OK!")
+            except Exception as e:
+                print(f"  ngrok existente nao funciona ({e}) - a apagar...")
+                try:
+                    os.remove(default_ngrok_bin)
+                except Exception:
+                    pass
+
+        # Configurar pyngrok para v2 com caminho explicito
+        pyngrok_config = conf.PyngrokConfig(
+            ngrok_version="v2",
+            ngrok_path=default_ngrok_bin
+        )
         conf.set_default(pyngrok_config)
+        print(f"  ngrok sera instalado em: {default_ngrok_bin}")
     else:
         print(f"  Windows moderno detectado (version {win_ver})")
         print("  A usar ngrok v3")
-
-    # Se existir ngrok.exe local na pasta tools, usar esse
-    local_ngrok = os.path.join(BASE_DIR, "tools", "ngrok.exe")
-    if os.path.exists(local_ngrok):
-        print(f"  ngrok local encontrado: {local_ngrok}")
-        # So usar o local se for compativel (testar se arranca)
-        import subprocess as sp
-        try:
-            result = sp.run([local_ngrok, "version"], capture_output=True, text=True, timeout=10)
-            if result.returncode == 0:
-                conf.get_default().ngrok_path = local_ngrok
-                print(f"  ngrok local OK: {result.stdout.strip()}")
-            else:
-                print("  ngrok local incompativel, pyngrok vai descarregar versao correcta.")
-        except Exception:
-            print("  ngrok local nao funciona, pyngrok vai descarregar versao correcta.")
-    else:
-        print("  pyngrok vai descarregar automaticamente a versao correcta.")
     print()
 
     # -------------------------------------------------------
