@@ -11,14 +11,14 @@ echo  ============================================================
 echo.
 echo  Este instalador vai configurar tudo automaticamente:
 echo    1. Verificar/Instalar Python
-echo    2. Instalar pacotes necessarios (Flask)
+echo    2. Instalar pacotes necessarios (Flask, pyngrok)
 echo    3. Verificar/Instalar SumatraPDF
-echo    4. Verificar/Instalar ngrok
-echo    5. Detectar impressora
-echo    6. Configurar print agent
-echo    7. Criar atalho no Ambiente de Trabalho
+echo    4. Detectar impressora
+echo    5. Configurar print agent
+echo    6. Criar atalho no Ambiente de Trabalho
 echo.
-echo  NOTA: Compativel com Windows 7+
+echo  NOTA: ngrok e gerido automaticamente pelo Python (pyngrok)
+echo        Nao precisa de descarregar ngrok.exe separadamente!
 echo  ============================================================
 echo.
 pause
@@ -121,22 +121,22 @@ echo.
 :: =============================================================
 :: STEP 2: Install pip packages
 :: =============================================================
-echo  [2/7] A instalar pacotes Python (Flask, requests)...
+echo  [2/6] A instalar pacotes Python (Flask, requests, pyngrok)...
 echo  --------------------------------------------------------
 "!PYTHON_EXE!" -m pip install --upgrade pip 2>nul
-"!PYTHON_EXE!" -m pip install flask requests
+"!PYTHON_EXE!" -m pip install flask requests pyngrok
 if %errorlevel% neq 0 (
     echo.
     echo  [AVISO] Falha ao instalar pacotes. A tentar com --user...
-    "!PYTHON_EXE!" -m pip install --user flask requests
+    "!PYTHON_EXE!" -m pip install --user flask requests pyngrok
 )
-echo  [OK] Pacotes instalados.
+echo  [OK] Pacotes instalados (flask, requests, pyngrok).
 echo.
 
 :: =============================================================
 :: STEP 3: Find or Install SumatraPDF
 :: =============================================================
-echo  [3/7] A verificar SumatraPDF...
+echo  [3/6] A verificar SumatraPDF...
 echo  --------------------------------------------------------
 
 set "FOUND_SUMATRA=0"
@@ -191,70 +191,9 @@ echo  [OK] SumatraPDF encontrado: !SUMATRA_EXE!
 echo.
 
 :: =============================================================
-:: STEP 4: Find or Install ngrok
+:: STEP 4: Detect Printer
 :: =============================================================
-echo  [4/7] A verificar ngrok...
-echo  --------------------------------------------------------
-
-set "FOUND_NGROK=0"
-
-:: Check PATH
-where ngrok >nul 2>&1
-if %errorlevel%==0 (
-    for /f "delims=" %%i in ('where ngrok') do (
-        set "NGROK_EXE=%%i"
-        set "FOUND_NGROK=1"
-        goto :ngrok_found
-    )
-)
-
-:: Check common locations
-for %%N in (
-    "%INSTALL_DIR%\ngrok.exe"
-    "%INSTALL_DIR%\tools\ngrok.exe"
-    "%USERPROFILE%\ngrok.exe"
-    "%LOCALAPPDATA%\ngrok\ngrok.exe"
-    "C:\ngrok\ngrok.exe"
-) do (
-    if exist %%N (
-        set "NGROK_EXE=%%~N"
-        set "FOUND_NGROK=1"
-        goto :ngrok_found
-    )
-)
-
-echo  [!] ngrok NAO encontrado.
-echo.
-echo  ngrok e necessario para criar o tunel internet.
-echo  Descarregue de: https://ngrok.com/download
-echo  Escolha: Windows (32-bit ou 64-bit conforme o PC)
-echo  NOTA: Para Windows 7, pode precisar da versao 32-bit.
-echo.
-echo  Extraia ngrok.exe para: %INSTALL_DIR%\tools\
-echo.
-echo  OU indique o caminho se ja o tem:
-set /p "NGROK_EXE=  Caminho para ngrok.exe (ou ENTER para configurar depois): "
-if "!NGROK_EXE!"=="" (
-    echo  [AVISO] ngrok nao configurado. Configure antes de iniciar.
-    set "NGROK_EXE=NAO_ENCONTRADO"
-) else (
-    if not exist "!NGROK_EXE!" (
-        echo  [AVISO] Ficheiro nao encontrado.
-        set "NGROK_EXE=NAO_ENCONTRADO"
-    )
-)
-goto :ngrok_done
-
-:ngrok_found
-echo  [OK] ngrok encontrado: !NGROK_EXE!
-
-:ngrok_done
-echo.
-
-:: =============================================================
-:: STEP 5: Detect Printer
-:: =============================================================
-echo  [5/7] A detectar impressoras...
+echo  [4/6] A detectar impressoras...
 echo  --------------------------------------------------------
 echo.
 echo  Impressoras encontradas:
@@ -274,9 +213,9 @@ echo  [OK] Impressora: !PRINTER_NAME!
 echo.
 
 :: =============================================================
-:: STEP 6: Create config and print_agent.py
+:: STEP 5: Create config
 :: =============================================================
-echo  [6/7] A criar ficheiros de configuracao...
+echo  [5/6] A criar ficheiros de configuracao...
 echo  --------------------------------------------------------
 
 :: Save config
@@ -284,7 +223,6 @@ echo  --------------------------------------------------------
 echo [CONFIG]
 echo PYTHON_EXE=!PYTHON_EXE!
 echo SUMATRA_EXE=!SUMATRA_EXE!
-echo NGROK_EXE=!NGROK_EXE!
 echo PRINTER_NAME=!PRINTER_NAME!
 echo PORT=5555
 echo AUTH_TOKEN=producao2026
@@ -298,9 +236,9 @@ echo.
 if not exist "%INSTALL_DIR%\tools" mkdir "%INSTALL_DIR%\tools"
 
 :: =============================================================
-:: STEP 7: Create desktop shortcut & launcher
+:: STEP 6: Create desktop shortcut
 :: =============================================================
-echo  [7/7] A criar atalhos...
+echo  [6/6] A criar atalhos...
 echo  --------------------------------------------------------
 
 :: Create the launcher VBS (to run without visible cmd window issues)
@@ -328,15 +266,12 @@ echo.
 echo  Resumo:
 echo    Python:     !PYTHON_EXE!
 echo    SumatraPDF: !SUMATRA_EXE!
-echo    ngrok:      !NGROK_EXE!
+echo    ngrok:      via pyngrok (automatico)
 echo    Impressora: !PRINTER_NAME!
 echo    Pasta:      !INSTALL_DIR!
 echo.
 if "!SUMATRA_EXE!"=="NAO_ENCONTRADO" (
     echo  [!] FALTA: SumatraPDF - descarregue e coloque em %INSTALL_DIR%\tools\
-)
-if "!NGROK_EXE!"=="NAO_ENCONTRADO" (
-    echo  [!] FALTA: ngrok - descarregue e coloque em %INSTALL_DIR%\tools\
 )
 echo.
 echo  Para iniciar: corra "iniciar.bat" ou o atalho no Desktop.

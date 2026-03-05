@@ -1,0 +1,7 @@
+{
+  "port": 5555,
+  "auth_token": "producao2026",
+  "printer_name": "RICOH MP C2503 [002673B065C1]",
+  "sumatra_path": "c:\\Users\\ASUS-JPB\\Documents\\kaizen\\production_tracking\\installer\\tools\\SumatraPDF.exe",
+  "temp_dir": "C:\\Users\\ASUS-JPB\\AppData\\Local\\Temp\\print_agent_nautilus"
+}

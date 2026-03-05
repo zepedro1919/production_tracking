@@ -23,15 +23,17 @@ Copie toda a pasta `installer` para o PC (por exemplo, para `C:\PrintAgent\`).
 
 ### Passo 2: Descarregar ferramentas necessárias
 
-Antes de correr o instalador, descarregue estes programas e coloque na pasta `tools`:
+Antes de correr o instalador, descarregue estes programas:
 
 | Programa | Download | Onde colocar |
 |----------|----------|-------------|
 | **SumatraPDF** | [sumatrapdfreader.org/download](https://www.sumatrapdfreader.org/download-free-pdf-viewer) - versão **Portable** | `tools\SumatraPDF.exe` |
-| **ngrok** | [ngrok.com/download](https://ngrok.com/download) - Windows | `tools\ngrok.exe` |
 | **Python 3.8** | [python.org/downloads](https://www.python.org/downloads/release/python-3820/) | Instalar normalmente (marcar **"Add to PATH"**) |
 
-> **NOTA Windows 7:** Use Python **3.8** (última versão compatível) e ngrok **32-bit**.
+> **NOTA:** O ngrok é instalado e gerido **automaticamente** pelo Python (pyngrok).
+> Não precisa de descarregar ngrok.exe manualmente!
+
+> **NOTA Windows 7:** Use Python **3.8** (última versão compatível).
 
 ### Passo 3: Correr o instalador
 
@@ -46,10 +48,13 @@ Antes de correr o instalador, descarregue estes programas e coloque na pasta `to
 ### Iniciar o sistema
 
 1. Clique duas vezes em **`iniciar.bat`** (ou no atalho do Desktop)
-2. Vão abrir 2 janelas:
+2. Vai abrir **1 janela** com tudo:
    - **Print Agent** - o servidor de impressão
-   - **ngrok** - o túnel de internet
+   - **ngrok** - o túnel de internet (automático)
 3. O URL do ngrok é mostrado e copiado automaticamente
+
+> 💡 **ngrok gratuito NÃO tem timeout** — pode correr infinitamente!
+> Mas o URL muda se reiniciar o programa.
 
 ### Actualizar o URL no Google Apps Script
 
@@ -82,8 +87,9 @@ Feche as janelas "Print Agent" e "ngrok".
 - Ou corra `setup.bat` novamente e indique o caminho
 
 ### "ngrok não encontrado"
-- Verifique que `ngrok.exe` está na pasta `tools\`
-- Ou corra `setup.bat` novamente
+- O ngrok é gerido automaticamente pelo pyngrok
+- Se falhar, verifique a ligação à internet
+- Verifique o ficheiro `print_agent.log` para erros
 
 ### "Impressão não funciona"
 - Verifique que a impressora está ligada e é a predefinida do Windows
@@ -106,13 +112,14 @@ installer/
 ├── setup.bat           ← Instalador (correr 1 vez)
 ├── iniciar.bat         ← Iniciar sistema (uso diário)
 ├── print_agent.py      ← Servidor de impressão
+├── launcher.py         ← Arranca tudo (print agent + ngrok)
 ├── config.json         ← Configuração (criado automaticamente)
 ├── config.ini          ← Config do instalador
 ├── print_agent.log     ← Log de actividade
+├── ngrok_url.txt       ← Último URL do ngrok
 ├── LEIA-ME.md          ← Este ficheiro
 └── tools/
-    ├── SumatraPDF.exe  ← Descarregar e colocar aqui
-    └── ngrok.exe       ← Descarregar e colocar aqui
+    └── SumatraPDF.exe  ← Descarregar e colocar aqui
 ```
 
 ---
